@@ -5,7 +5,7 @@ A production-ready real estate chat interface built with Next.js, React, Tailwin
 ## 🏠 Features
 
 - **Real Estate Domain Focus**: Specialized categories for different areas of property law
-- 💬 **Real-time Chat**: Streaming responses with typing indicators  
+- 💬 **Real-time Chat**: Streaming responses with typing indicators
 - 📚 **Real Estate Areas**: Pre-defined categories (Buying/Selling, Landlord-Tenant, Property Disputes, Financing, etc.)
 - 📁 **Document Upload**: Upload and analyze real estate documents (contracts, leases, deeds)
 - 🔐 **Authentication**: Secure email-based authentication with Supabase
@@ -25,7 +25,7 @@ A production-ready real estate chat interface built with Next.js, React, Tailwin
 
 ### 1. Prerequisites
 
-- Node.js 18+ 
+- Node.js 18+
 - npm or yarn
 - Supabase account
 
@@ -91,7 +91,7 @@ src/
 
 ### Real Estate Topics
 - **Buying & Selling**: Purchase agreements, closings, title issues
-- **Landlord-Tenant**: Rental agreements, evictions, security deposits  
+- **Landlord-Tenant**: Rental agreements, evictions, security deposits
 - **Property Disputes**: Boundary disputes, easements, neighbor issues
 - **Financing & Mortgages**: Loan terms, foreclosures, refinancing
 - **Zoning & Permits**: Building permits, zoning laws, development
@@ -210,3 +210,9 @@ For questions or issues:
 ---
 
 **Disclaimer**: This application provides educational information about real estate matters only. It does not constitute legal advice. Always consult with qualified real estate attorneys for specific legal matters.
+
+
+- [ ] Ensure LLM can ingest and interact with uploaded documents
+- [ ] For uploaded documents, convert to text (to ensure compatibility with Supabase)
+- [ ] Pass conversation history as context for the model
+- [ ] Ensure convo history uploaded to Supabase (conversation history points to )

@@ -31,16 +31,31 @@ CREATE TABLE messages (
   metadata JSONB
 );
 
+-- Create uploaded_documents table
+CREATE TABLE uploaded_documents (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES user_profiles(id) ON DELETE CASCADE NOT NULL,
+  file_name TEXT NOT NULL,
+  file_type TEXT NOT NULL,
+  file_size INTEGER NOT NULL,
+  document_type TEXT NOT NULL,
+  text_content TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
+);
+
 -- Create indexes for better performance
 CREATE INDEX idx_conversations_user_id ON conversations(user_id);
 CREATE INDEX idx_conversations_updated_at ON conversations(updated_at DESC);
 CREATE INDEX idx_messages_conversation_id ON messages(conversation_id);
 CREATE INDEX idx_messages_created_at ON messages(created_at);
+CREATE INDEX idx_uploaded_documents_user_id ON uploaded_documents(user_id);
+CREATE INDEX idx_uploaded_documents_created_at ON uploaded_documents(created_at);
 
 -- Enable RLS (Row Level Security)
 ALTER TABLE user_profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE conversations ENABLE ROW LEVEL SECURITY;
 ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
+ALTER TABLE uploaded_documents ENABLE ROW LEVEL SECURITY;
 
 -- Create RLS policies
 CREATE POLICY "Users can view own profile" ON user_profiles FOR SELECT USING (auth.uid() = id);
@@ -56,6 +71,9 @@ CREATE POLICY "Users can view messages from own conversations" ON messages FOR S
   USING (conversation_id IN (SELECT id FROM conversations WHERE user_id = auth.uid()));
 CREATE POLICY "Users can create messages in own conversations" ON messages FOR INSERT 
   WITH CHECK (conversation_id IN (SELECT id FROM conversations WHERE user_id = auth.uid()));
+
+CREATE POLICY "Users can view own uploaded documents" ON uploaded_documents FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can create own uploaded documents" ON uploaded_documents FOR INSERT WITH CHECK (auth.uid() = user_id);
 
 -- Create functions to automatically update timestamps
 CREATE OR REPLACE FUNCTION update_updated_at_column()

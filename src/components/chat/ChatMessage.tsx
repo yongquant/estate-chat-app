@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card'
 import { Message } from '@/types/chat'
 import { Bot, User, AlertTriangle, ExternalLink } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import React, { useEffect } from 'react'
 import ReactMarkdown from 'react-markdown'
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { oneDark } from 'react-syntax-highlighter/dist/cjs/styles/prism'
@@ -23,8 +24,20 @@ const ChatMessage = ({ message, isStreaming = false }: ChatMessageProps) => {
   const confidence = message.metadata?.confidence
   const citations = message.metadata?.citations
 
+  useEffect(() => {
+    if (isStreaming) {
+      window.scrollTo(0, document.body.scrollHeight)
+    }
+  }, [message.content, isStreaming])
+
   return (
-    <div className={cn('flex gap-4 px-6 py-4', isAssistant ? 'bg-muted/30' : '')}>
+    <div
+      className={cn(
+        'flex gap-4 px-6 py-4',
+        isAssistant ? 'bg-muted/30' : '',
+        isStreaming ? 'animate-pulse' : ''
+      )}
+    >
       <Avatar className={cn('h-8 w-8 flex-shrink-0 mt-1')}>
         {isAssistant ? (
           <>

@@ -160,7 +160,7 @@ export function useChat({ conversationId: initialConversationId }: UseChatProps 
         .from('messages')
         .insert([{
           conversation_id: conversationId,
-          content: JSON.stringify(message.content),
+          content: typeof message.content === 'string' ? message.content : JSON.stringify(message.content),
           role: message.role,
           metadata: message.metadata
         }])
@@ -247,8 +247,8 @@ export function useChat({ conversationId: initialConversationId }: UseChatProps 
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
+            conversationId: convId,
             messages: [
-              ...messages,
               { role: 'user', content: preparedContent }
             ]
           })
@@ -275,11 +275,17 @@ export function useChat({ conversationId: initialConversationId }: UseChatProps 
           setMessages(prev => [...prev, assistantMessage])
         }
       } else {
-        // For text-only messages, use the completion hook
-        await complete(content as string)
+        // For text-only messages, use the completion hook with conversation context
+        await complete(content as string, {
+          body: {
+            conversationId: convId
+          }
+        })
       }
+      return convId
     } catch (error) {
       console.error('Error sending message:', error)
+      return null
     } finally {
       setIsLoading(false)
     }

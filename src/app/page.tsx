@@ -11,7 +11,7 @@ import Sidebar from '@/components/sidebar/Sidebar'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { LegalArea } from '@/types/chat'
-import { supabase } from '@/lib/supabase'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { User } from '@supabase/supabase-js'
 import { LogIn, LogOut, User as UserIcon } from 'lucide-react'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
@@ -24,6 +24,11 @@ export default function HomePage() {
   const [isMobile, setIsMobile] = useState(false)
   const [isSigningIn, setIsSigningIn] = useState(false)
   const [emailInput, setEmailInput] = useState('')
+
+  const supabase = createClientComponentClient({
+    supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL,
+    supabaseKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  })
 
   const {
     messages,
@@ -72,7 +77,7 @@ export default function HomePage() {
     }
   }, [activeConversationId, loadMessages])
 
-  const handleSendMessage = async (content: string) => {
+  const handleSendMessage = async (content: string | any[]) => {
     if (!user) {
       showEmailForm()
       return
@@ -89,11 +94,11 @@ export default function HomePage() {
       showEmailForm()
       return
     }
-    
+
     // In a real implementation, you would upload files to Supabase Storage
     // and then analyze them with an AI service
     console.log('Document upload:', { files, documentType })
-    
+
     // For now, we'll just show a placeholder response
     // In production, you'd process the documents and create appropriate responses
   }
@@ -120,20 +125,19 @@ export default function HomePage() {
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: window.location.origin
+          emailRedirectTo: `${window.location.origin}/auth/callback`
         }
       })
-      
-      if (error) throw error
-      toast.success('Check your email for the login link!', {
-        description: `We sent a magic link to ${email}`
-      })
-      setIsSigningIn(false)
-      setEmailInput('')
+
+      if (error) {
+        console.error('Error:', error.message)
+        return
+      }
+
+      // Show success message to check email
+      alert('Check your email for the login link!')
     } catch (error) {
-      console.error('Error signing in:', error)
-      toast.error('Error signing in. Please try again.')
-      setIsSigningIn(false)
+      console.error('Error:', error)
     }
   }
 
@@ -160,7 +164,7 @@ export default function HomePage() {
           <p className="text-gray-600 mb-8">
             Get informed guidance on real estate matters. Sign in to start a conversation with our AI assistant.
           </p>
-          
+
           {!isSigningIn ? (
             <Button onClick={showEmailForm} size="lg" className="w-full">
               <LogIn className="h-4 w-4 mr-2" />
@@ -177,9 +181,9 @@ export default function HomePage() {
                 className="w-full"
               />
               <div className="flex gap-2">
-                <Button 
-                  type="button" 
-                  variant="outline" 
+                <Button
+                  type="button"
+                  variant="outline"
                   onClick={() => setIsSigningIn(false)}
                   className="flex-1"
                 >
@@ -192,7 +196,7 @@ export default function HomePage() {
               </div>
             </form>
           )}
-          
+
           <p className="text-xs text-gray-500 mt-4">
             We&apos;ll send you a magic link to sign in securely.
           </p>

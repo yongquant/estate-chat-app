@@ -8,7 +8,7 @@ import DocumentUpload from './DocumentUpload'
 import { toast } from 'sonner'
 
 interface ChatInputProps {
-  onSendMessage: (message: string) => void
+  onSendMessage: (message: string | any[]) => void
   isLoading?: boolean
   placeholder?: string
   onFileUpload?: (files: File[], documentType: string) => void
@@ -44,7 +44,7 @@ export default function ChatInput({
       files.forEach(file => formData.append('files', file));
       formData.append('documentType', documentType);
 
-      // Upload files
+      // Upload files to process text content and store in Supabase
       const response = await fetch('/api/upload', {
         method: 'POST',
         body: formData
@@ -54,13 +54,38 @@ export default function ChatInput({
         throw new Error('Failed to upload files');
       }
 
+      const uploadResult = await response.json();
+      console.log('Upload successful:', uploadResult);
+
       // Call parent's onFileUpload if it exists
       onFileUpload?.(files, documentType);
       setShowDocumentUpload(false);
 
-      // Auto-generate a message about the uploaded documents
+      // Create message content with file data for Gemini
+      const fileData = await Promise.all(
+        files.map(async (file) => {
+          const buffer = await file.arrayBuffer();
+          const base64Data = Buffer.from(buffer).toString('base64');
+          return {
+            type: 'file',
+            data: base64Data,
+            mimeType: file.type,
+            name: file.name
+          };
+        })
+      );
+
+      // Send message with file attachments
       const fileNames = files.map(f => f.name).join(', ');
-      onSendMessage(`I've uploaded ${files.length} document(s) (${fileNames}) of type "${documentType}". Can you help me understand these documents?`);
+      const messageContent = [
+        { type: 'text', text: `I've uploaded ${files.length} document(s) (${fileNames}) of type "${documentType}". Can you help me understand these documents?` },
+        ...fileData
+      ];
+
+      // Use the enhanced send message with file content
+      if (onSendMessage) {
+        onSendMessage(messageContent);
+      }
     } catch (error) {
       console.error('Error uploading files:', error);
       toast.error('Failed to upload files');
